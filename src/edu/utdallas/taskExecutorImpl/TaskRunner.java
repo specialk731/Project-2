@@ -8,7 +8,6 @@ import edu.utdallas.taskExecutor.Task;
  */
 public class TaskRunner implements Runnable
 {
-
     @Override
     public void run() {
         while(true) {

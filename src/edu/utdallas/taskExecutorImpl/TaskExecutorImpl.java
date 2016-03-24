@@ -19,30 +19,21 @@ public class TaskExecutorImpl implements TaskExecutor
 
 		for(int i = 0; i < poolSize; i++)
 		{
-			new Thread(new TaskRunner()).start();
 			Thread t = new Thread(new TaskRunner());
-			t.start();
 			runnerPool.add(t);
+			runnerPool.get(i).start();
 		}
-
-
-
 
 	}
 
 	@Override
 	public void addTask(Task task)
 	{
-		System.out.println("Added task " + task.getName());
-
 		try {
 			BlockingQueue.getInstance().put(task);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
-
-
 	}
 
 }

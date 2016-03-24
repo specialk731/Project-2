@@ -8,13 +8,13 @@ public class TaskExecutorSimpleTest
     public void runTest()
 	{
 		// Initialize the executor with 10 threads & a queue size of 100. 
-		final TaskExecutorImpl taskExecutor = new TaskExecutorImpl(5);
+		final TaskExecutorImpl taskExecutor = new TaskExecutorImpl(10);
 
 		// Inject 1000 tasks into the executor in a separate thread. 
 		Runnable inserter = new Runnable() {
 			public void run()
 			{
-				for (int idx = 0; idx < 10; idx++) {     //original 1000
+				for (int idx = 0; idx < 1000; idx++) {     //original 1000
 					// Note that Threads are assigned names. 
 					String name = "SimpleTask" + idx;
 					Task myTask = new SimpleTestTask(name);
