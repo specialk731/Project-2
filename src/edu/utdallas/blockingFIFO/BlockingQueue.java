@@ -22,6 +22,9 @@ public class BlockingQueue
 
     private static Object notfull ;
     private static Object notempty ;
+    //private static Object arrayOperationInProgress;
+
+
     private Task[] blockingQueue;
 
     private static BlockingQueue instance;
@@ -34,6 +37,7 @@ public class BlockingQueue
 
         notfull = new Object();
         notempty = new Object();
+        //arrayOperationInProgress = new Object();  //lock for array operations may be not needed
 
         blockingQueue = new Task[queueSize];
     }
@@ -55,7 +59,8 @@ public class BlockingQueue
                 this.notfull.wait();
             }
         }
-         else if (this.isQueueEmpty())  //
+
+        if (this.isQueueEmpty())  //
         {
             this.headIndex++;  //
             this.tailIndex++;
@@ -79,7 +84,9 @@ public class BlockingQueue
             synchronized(this.notempty) {
                 this.notempty.wait();
             }
-        } else if ( this.headIndex == this.tailIndex) {
+        }
+
+        if ( this.headIndex == this.tailIndex) {
             returningTask = this.blockingQueue[ this.headIndex];
             this.headIndex = -1;
             this.tailIndex = -1;
