@@ -15,7 +15,7 @@ public class TaskExecutorImpl implements TaskExecutor
 
 	public TaskExecutorImpl(int poolSize)
 	{
-		runnerPool = new ArrayList<Thread>();
+		runnerPool = new ArrayList<Thread>(poolSize);
 
 		for(int i = 0; i < poolSize; i++)
 		{

@@ -13,19 +13,25 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 
 
-
-
 public class BlockingQueue
 {
 
+    private int headIndex;     //first to out
+    private int tailIndex;     //last to out , most recently added
+    private int queueSize = 5;
+
     private static Object monitor;
-    private ArrayBlockingQueue<Task> blockingQueue;
+    private Task[] blockingQueue;
 
     private static BlockingQueue instance;
 
     private BlockingQueue() throws InterruptedException {
         this.monitor = new Object();
-        blockingQueue = new ArrayBlockingQueue<Task>(5);
+
+        this.headIndex=-1;
+        this.tailIndex=-1;
+
+        blockingQueue = new Task[queueSize];
     }
 
 
@@ -38,7 +44,21 @@ public class BlockingQueue
 
     public void put(Task task) throws InterruptedException
     {
-        this.blockingQueue.add(task);
+        if ((this.tailIndex+1)%this.queueSize==headIndex) {
+            throw new IllegalStateException("Queue is full");
+        }
+         else if (this.isQueueEmpty())  //
+        {
+            this.headIndex++;  //
+            this.tailIndex++;
+            this.blockingQueue[this.tailIndex] = task;
+        }
+        else {
+            this.tailIndex=(this.tailIndex+1)%this.queueSize;  //shifting tail +1 or moving to 0 if reached max size (0 index should be available)
+            this.blockingQueue[this.tailIndex] = task;         //latest inserted task goes to tail
+        }
+
+
         synchronized(monitor) {
             monitor.notify();
         }
@@ -49,9 +69,26 @@ public class BlockingQueue
         synchronized(monitor) {
             monitor.wait();
         }
-        Task task = this.blockingQueue.take();
 
-        return task;
+        Task returningTask = null;
 
+        if (this.isQueueEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        } else if ( this.headIndex == this.tailIndex) {
+            returningTask = this.blockingQueue[ this.headIndex];
+            this.headIndex = -1;
+            this.tailIndex = -1;
+
+        } else {
+            returningTask = this.blockingQueue[ this.headIndex];
+            this.headIndex=( this.headIndex+1)%this.queueSize;
+
+        }
+
+        return returningTask;
+    }
+
+    private boolean isQueueEmpty() {
+        return (this.headIndex == -1 && this.tailIndex == -1);
     }
 }
