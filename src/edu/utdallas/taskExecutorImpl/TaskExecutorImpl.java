@@ -11,26 +11,36 @@ import java.util.List;
 public class TaskExecutorImpl implements TaskExecutor
 {
 
+	private BlockingQueue blockingQueue;
 	private List<Thread> runnerPool;
 
-	public TaskExecutorImpl(int poolSize)
-	{
+	public TaskExecutorImpl(int poolSize) {
+
+		try {
+			blockingQueue = new BlockingQueue();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		runnerPool = new ArrayList<Thread>(poolSize);
 
 		for(int i = 0; i < poolSize; i++)
 		{
-			Thread t = new Thread(new TaskRunner());
+			TaskRunner taskRunner =  new TaskRunner();
+			taskRunner.setBlockingQueue(blockingQueue);
+
+			Thread t = new Thread(taskRunner);
 			runnerPool.add(t);
 			runnerPool.get(i).start();
 		}
-
 	}
 
 	@Override
 	public void addTask(Task task)
 	{
 		try {
-			BlockingQueue.getInstance().put(task);
+
+			this.blockingQueue.put(task);
+
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

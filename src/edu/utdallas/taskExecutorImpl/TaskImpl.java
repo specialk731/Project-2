@@ -17,7 +17,6 @@ public class TaskImpl implements Task
 
     @Override
     public void execute() {
-        System.out.println("Executing Task:" + this.name);
     }
 
     @Override
