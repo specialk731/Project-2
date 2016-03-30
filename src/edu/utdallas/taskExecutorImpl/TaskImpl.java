@@ -3,8 +3,9 @@ package edu.utdallas.taskExecutorImpl;
 import edu.utdallas.taskExecutor.Task;
 
 /**
- * Created by Anton on 3/22/2016.
+ * Created by Anton Rogozhnikov, Kevin Greenwald
  */
+
 public class TaskImpl implements Task
 {
     private String name;

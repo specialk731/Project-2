@@ -7,6 +7,9 @@ import edu.utdallas.taskExecutor.TaskExecutor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Created by Anton Rogozhnikov, Kevin Greenwald
+ */
 
 public class TaskExecutorImpl implements TaskExecutor
 {
@@ -38,11 +41,10 @@ public class TaskExecutorImpl implements TaskExecutor
 	public void addTask(Task task)
 	{
 		try {
-
 			this.blockingQueue.put(task);
 
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 

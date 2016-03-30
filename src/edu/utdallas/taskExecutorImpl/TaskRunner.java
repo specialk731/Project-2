@@ -4,16 +4,16 @@ import edu.utdallas.blockingFIFO.BlockingQueue;
 import edu.utdallas.taskExecutor.Task;
 
 /**
- * Created by Anton on 3/22/2016.
+ * Created by Anton Rogozhnikov, Kevin Greenwald
  */
 public class TaskRunner implements Runnable
 {
-
     private BlockingQueue blockingQueue;
+
     @Override
     public void run() {
         while(true) {
-            // take() blocks if queue is empty
+
             try {
                 Task newTask = this.blockingQueue.take();
 
@@ -21,7 +21,7 @@ public class TaskRunner implements Runnable
             }
             catch(Throwable th)
             {
-                System.out.println("Error: "+th.getMessage() + "  " + th.toString() + " " +th.getCause());
+                //System.out.println("Error: "+th.getMessage() + "  " + th.toString() + " " +th.getCause());
             }
         }
 

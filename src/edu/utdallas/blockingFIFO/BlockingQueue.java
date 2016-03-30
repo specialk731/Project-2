@@ -1,32 +1,22 @@
 package edu.utdallas.blockingFIFO;
 
 import edu.utdallas.taskExecutor.Task;
-import edu.utdallas.taskExecutorImpl.TaskImpl;
-import javafx.beans.binding.ObjectExpression;
-
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
- * Created by Anton on 3/22/2016.
- *
+ * Created by Anton Rogozhnikov, Kevin Greenwald
  */
-
 
 public class BlockingQueue
 {
 
-    private boolean isFirstTask;
-    private boolean isArrayActive;
-    private int headIndex;     //first to out
-    private int tailIndex;     //last to out , most recently added
-    private int queueSize = 100;
+    private boolean isArrayActive; //to indicate whether another thread is making changes to array
+    private int headIndex;         //first to out
+    private int tailIndex;         //last to out , most recently added
+    private int queueSize = 50;    //FifoQueue size is 50
 
-    private static Object notfull ;
-    private static Object notempty ;
-    private static Object arrayInUse;
-
-    //private static Object arrayOperationInProgress;
-
+    private static Object notfull ;     //monitor to indicate that task can be added
+    private static Object notempty ;    //monitor to indicate that task can be removed
+    private static Object arrayInUse;   //monitor lock for array operations
 
     private Task[] blockingQueue;
 
@@ -35,45 +25,34 @@ public class BlockingQueue
     public BlockingQueue() throws InterruptedException
     {
         this.isArrayActive = false;
-        this.isFirstTask = true;
         this.headIndex=-1;
         this.tailIndex=-1;
 
-        notfull = new Object();
-        notempty = new Object();
-        arrayInUse = new Object();  //lock for array operations may be not needed
+        notfull = new Object();     //monitor to indicate that task can be added
+        notempty = new Object();    //monitor to indicate that task can be removed
+        arrayInUse = new Object();  //lock for array operations
 
         blockingQueue = new Task[queueSize];   //Instantiating queue (array type)
     }
 
-
-
-    ////////////////////    PUT      /////////////////////////////
-
     public void put(Task task) throws InterruptedException {
 
-
+        //case when queue is full - if tail index incremented by 1 it will go to head index
         if ((this.tailIndex + 1) % this.queueSize == this.headIndex) {
-            //System.out.println("Queue is full");
             synchronized (this.notfull) {
                 this.notfull.wait();
             }
         }
 
-
+        //locking array access to a single Thread
         if (isArrayActive) {
             synchronized (this.arrayInUse) {
                 this.arrayInUse.wait();
-
             }
+            this.isArrayActive = true;
         }
-        this.isArrayActive = true;
 
-
-
-
-        if (this.isQueueEmpty())  //head and tail will be the same if array was initially empty
-        {
+        if (this.isQueueEmpty()) {  //head and tail will be the same if array was initially empty
             this.headIndex++;
             this.tailIndex++;
             this.blockingQueue[this.tailIndex] = task;
@@ -83,29 +62,20 @@ public class BlockingQueue
             this.blockingQueue[this.tailIndex] = task;         //latest inserted task goes to tail
         }
 
+        //unlocking array access
+        if (isArrayActive) {
+            synchronized (this.arrayInUse) {
+                this.arrayInUse.notify();
+            }
+            this.isArrayActive=false;
+        }
 
-
-
+        //Task have been added to the queue - queue is not empty
         synchronized(this.notempty) {
-
             this.notempty.notify();
-
         }
-
-
-        synchronized (this.arrayInUse) {
-            this.arrayInUse.notify();
-
-        }
-        this.isArrayActive=false;
 
     }
-
-
-
-
-    ////////////////////    TAKE      /////////////////////////////
-
 
     public Task take() throws InterruptedException
     {
@@ -118,13 +88,13 @@ public class BlockingQueue
             }
         }
 
+        //locking array access toa single Thread
         if (isArrayActive) {
             synchronized (this.arrayInUse) {
                 this.arrayInUse.wait();
             }
+            this.isArrayActive = true;
         }
-        this.isArrayActive = true;
-
 
         if ( this.headIndex == this.tailIndex) {
             returningTask = this.blockingQueue[ this.headIndex];
@@ -136,28 +106,26 @@ public class BlockingQueue
             this.headIndex=( this.headIndex+1)%this.queueSize;
         }
 
+        //unlocking array access
+        if (isArrayActive) {
+            synchronized (this.arrayInUse) {
+                this.arrayInUse.notify();
+            }
+            this.isArrayActive=false;
+        }
+
         synchronized (this.notfull)
         {
             this.notfull.notify();  //Task taken away - array is not full
         }
 
-
-
-        synchronized (this.arrayInUse) {
-
-            this.arrayInUse.notify();
-
-        }
-        this.isArrayActive=false;
-
-
         return returningTask;
     }
 
+    //if both tail and head points to non existing index - queue is empty
     private boolean isQueueEmpty()
     {
         return (this.headIndex == -1 && this.tailIndex == -1);
-
     }
 
 }
